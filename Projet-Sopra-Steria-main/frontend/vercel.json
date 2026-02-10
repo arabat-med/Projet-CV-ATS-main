@@ -1,7 +1,8 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm ci",
+  "installCommand": "npm install",
   "framework": "vite",
   "outputDirectory": "dist",
   "rewrites": [
@@ -9,5 +10,16 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
