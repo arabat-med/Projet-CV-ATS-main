@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
-import SopraLogo from '../../components/SopraLogo';
 import {
   Upload,
   FileText,
@@ -162,7 +161,6 @@ const Normalize = () => {
       <Navbar />
       <main className="normalize-section">
         <div className="normalize-container text-center max-w-5xl mx-auto">
-          <SopraLogo className="hero-logo" />
           <h1 className="hero-title">
             Normaliser votre <span className="gradient-text">CV</span>
           </h1>

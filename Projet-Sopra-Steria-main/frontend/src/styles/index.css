@@ -88,7 +88,28 @@
     .navbar-logo img {
       width: 12rem;
     }
-  
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #000;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      transition: color 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+      color: #ff6b35;
+    }
+
+    .dark .navbar-brand {
+      color: #fff;
+    }
+
+    .dark .navbar-brand:hover {
+      color: #ff6b35;
+    }
+
     .navbar-links {
       display: none;
     }

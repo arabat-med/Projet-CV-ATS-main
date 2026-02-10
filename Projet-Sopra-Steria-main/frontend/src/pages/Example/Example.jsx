@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import Navbar from '../../components/Navbar'
-import SopraLogo from '../../components/SopraLogo'
 import { FileText, Download, Eye, Code, User, Briefcase, GraduationCap, Award } from 'lucide-react'
 import './Example.css'
 
@@ -113,7 +112,6 @@ const Example = () => {
       <section className="example-hero">
         <div className="example-container">
           <div className="text-center">
-            <SopraLogo className="hero-logo" />
             <h1 className="hero-title">
               Exemple de CV <span className="gradient-text">standardisé</span>
             </h1>

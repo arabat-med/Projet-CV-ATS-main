@@ -1,6 +1,5 @@
 import React from 'react'
 import Navbar from '../../components/Navbar'
-import SopraLogo from '../../components/SopraLogo'
 import { Upload, FileText, Download, CheckCircle, ArrowRight, Zap, Shield, Clock } from 'lucide-react'
 import './HowItWorks.css'
 
@@ -58,7 +57,6 @@ const HowItWorks = () => {
       <section className="how-it-works-hero">
         <div className="how-it-works-container">
           <div className="text-center">
-            <SopraLogo className="hero-logo" />
             <h1 className="hero-title">
               Comment ça <span className="gradient-text">fonctionne</span> ?
             </h1>

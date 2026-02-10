@@ -2,7 +2,6 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { ArrowRight, FileText } from "lucide-react";
 import heroImage from "../assets/images/hero-cv.png";
-import sopra from "../assets/logos/sopra-steria-logo.svg";
 
 const HeroSection = () => {
   return (
@@ -17,9 +16,6 @@ const HeroSection = () => {
         <div className="hero-grid">
           {/* Colonne gauche */}
           <div className="text-content">
-            <div className="hero-logo">
-              <img src={sopra} alt="Sopra Steria" />
-            </div>
 
             <h1 className="hero-title">
               Transformez vos CV en{" "}

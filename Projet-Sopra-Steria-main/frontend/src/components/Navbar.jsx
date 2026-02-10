@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { HiMenu, HiX, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
-import logo2 from "../assets/logos/logo2.png";
 import { useDarkMode } from "../hooks/useDarkMode";
 import { NAV_LINKS, ROUTES } from "../utils/constants";
 
@@ -12,9 +11,9 @@ const Navbar = () => {
   return (
     <header className="navbar">
       <div className="navbar-container">
-        {/* Logo */}
+        {/* Logo - Removed */}
         <NavLink to="/" className="navbar-logo">
-          <img src={logo2} alt="Sopra Steria" />
+          <span className="navbar-brand">CV Generator</span>
         </NavLink>
 
         {/* Menu Desktop */}

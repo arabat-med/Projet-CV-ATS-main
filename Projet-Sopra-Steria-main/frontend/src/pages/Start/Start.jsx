@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
-import SopraLogo from '../../components/SopraLogo';
 import {
   Upload,
   FileText,
@@ -344,7 +343,6 @@ const Start = () => {
       <Navbar />
       <main className="start-section">
         <div className="start-container text-center max-w-5xl mx-auto">
-          <SopraLogo className="hero-logo" />
           <h1 className="hero-title">
             Analysez votre <span className="gradient-text">CV</span>
           </h1>
