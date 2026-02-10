@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "buildCommand": "cd Projet-Sopra-Steria-main/frontend && npm install && npm run build",
+  "outputDirectory": "Projet-Sopra-Steria-main/frontend/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
