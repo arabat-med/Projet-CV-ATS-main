@@ -1,19 +1,16 @@
 # --- API Backend ---
 Flask>=3.0.0
 Flask-Cors>=4.0.0
+gunicorn>=21.0.0
 
 # --- PDF / DOCX ---
 python-docx>=0.8.11
 docxtpl>=0.16.7
 reportlab>=3.6.12
-docx2pdf>=0.1.8
-
-# --- Windows COM automation (obligatoire pour docx2pdf) ---
-pywin32>=306
 
 # --- PDF + conversion ---
 PyPDF2>=3.0.1
-tqdm>=4.66.1   # progress bar utilisée dans PDF conversion
+tqdm>=4.66.1
 
 # --- NLP + extraction ---
 spacy>=3.7.0,<4.0.0
@@ -29,5 +26,5 @@ pandas>=2.0.0
 # --- Tests ---
 pytest>=7.4.0
 
-# --- Optionnel : pour ta CLI / affichage riche ---
+# --- CLI ---
 rich>=13.4.2

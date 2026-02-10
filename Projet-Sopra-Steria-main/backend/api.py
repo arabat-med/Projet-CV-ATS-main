@@ -21,7 +21,20 @@ from extractors.section_classifier import build_structured_json
 from extractors.version_mapper import normalize_old_cv_to_new, convert_v2_to_old_format
 
 app = Flask(__name__)
-CORS(app)  # Autorise les requêtes cross-origin
+
+# Configuration CORS pour accepter les requêtes du frontend
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://*.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 UPLOAD_FOLDER = Path('data/input')
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
@@ -77,6 +90,16 @@ def process_cv(file_path):
     except Exception as e:
         return None, str(e)
 
+
+# Health check endpoint pour vérifier que l'API fonctionne
+@app.route('/health', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'message': 'CV-ATS API is running',
+        'timestamp': datetime.now().isoformat()
+    })
 
 
 @app.route('/api/cv/analyze', methods=['POST'])
@@ -624,4 +647,6 @@ def normalize_and_export_pdf():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, use_reloader=False)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug, use_reloader=False)
