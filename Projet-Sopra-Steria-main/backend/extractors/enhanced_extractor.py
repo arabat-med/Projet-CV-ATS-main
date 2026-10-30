@@ -243,7 +243,7 @@ def is_valid_school(text: str) -> bool:
 def extract_name_from_email(email: str) -> Optional[str]:
     """
     Extrait le nom depuis une adresse email.
-    Ex: oussama.bennouri@gmail.com → Oussama BENNOURI
+    Ex: oussama.bennouri@example.invalid → Oussama BENNOURI
     """
     if not email or '@' not in email:
         return None
@@ -558,7 +558,7 @@ def extraire_entites_ameliore(texte: str) -> Dict[str, Any]:
 def extraire_entites(texte: str) -> Dict[str, List[str]]:
     """
     Interface de compatibilité avec l'ancien extracteur.
-    Utilisé par section_classifier.py
+    Module expérimental ; non importé par le parcours API courant.
     """
     result = extraire_entites_ameliore(texte)
     
@@ -582,7 +582,7 @@ def extraire_entites(texte: str) -> Dict[str, List[str]]:
 if __name__ == "__main__":
     test_cv = """
 Marie DUPONT
-06 12 34 56 78 | marie.dupont@gmail.com
+06 12 34 56 78 | marie.dupont@example.invalid
 15 rue des Lilas, 75001 Paris
 
 PROFIL

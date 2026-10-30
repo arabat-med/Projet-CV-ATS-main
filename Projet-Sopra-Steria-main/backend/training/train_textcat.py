@@ -61,8 +61,7 @@ def train_textcat(
         nlp = spacy.load(base_model)
     except OSError:
         print(f"Modèle '{base_model}' non trouvé. Téléchargement...")
-        os.system(f"python -m spacy download {base_model}")
-        nlp = spacy.load(base_model)
+        raise RuntimeError("Modèle de base absent : installez-le explicitement avec python -m spacy download fr_core_news_md")
     
     # Ajouter le TextCategorizer
     print("\n🏷️ Configuration du TextCategorizer...")
@@ -132,7 +131,7 @@ def test_model(nlp, test_texts=None):
     """Teste le modèle sur des textes exemples."""
     if test_texts is None:
         test_texts = [
-            "Marie DUPONT\n06 12 34 56 78\nmarie@email.com",
+            "Marie DUPONT\n06 12 34 56 78\nmarie@example.invalid",
             "FORMATION\n2020-2023: Master Data Science - Polytechnique",
             "EXPÉRIENCE\nDéveloppeur Python chez Google (2019-2022)",
             "COMPÉTENCES: Python, Java, Docker, Kubernetes",

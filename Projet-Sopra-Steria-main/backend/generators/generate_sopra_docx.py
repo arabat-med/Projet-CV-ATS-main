@@ -4,7 +4,9 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt, Inches, RGBColor
+from docx.text.paragraph import Paragraph
 from typing import Dict, List, Optional, Any
+from pathlib import Path
 import re
 
 # ---------------------------
@@ -37,27 +39,27 @@ def map_extracted_data_to_template(cv_data: Dict) -> Dict:
         num = str(i)
         
         # PERIODE: Dates
-        mapped[f"PERIODE_{num}"] = exp.get("dates", "Non renseigné")
+        mapped[f"PERIODE_{num}"] = exp.get("dates") or ""
         
         # CLIENT: Entreprise
-        mapped[f"CLIENT_{num}"] = exp.get("entreprise", "Non renseigné")
+        mapped[f"CLIENT_{num}"] = exp.get("entreprise") or ""
         
         # INTITULE_MISSION: Poste/Titre de la mission
         poste = exp.get("poste")
         if poste:
             mapped[f"INTITULE_MISSION_{num}"] = poste
-            mapped[f"FONCTION_{num}"] = poste
+            mapped[f"FONCTION_{num}"] = exp.get("fonction") or ""
         else:
             # Si pas de poste, utiliser la description courte
             desc = exp.get("description", "")
             if desc:
                 # Prendre la première ligne ou les 50 premiers caractères
                 first_line = desc.split('\n')[0].split('-')[0].strip()
-                mapped[f"INTITULE_MISSION_{num}"] = first_line[:80] if first_line else "Mission"
-                mapped[f"FONCTION_{num}"] = first_line[:80] if first_line else "Mission"
+                mapped[f"INTITULE_MISSION_{num}"] = first_line if first_line else "Mission"
+                mapped[f"FONCTION_{num}"] = ""
             else:
-                mapped[f"INTITULE_MISSION_{num}"] = "Mission"
-                mapped[f"FONCTION_{num}"] = "Mission"
+                mapped[f"INTITULE_MISSION_{num}"] = ""
+                mapped[f"FONCTION_{num}"] = ""
         
         # DESCRIPTION_MISSION: Description complète (formattée)
         description = exp.get("description", "")
@@ -74,16 +76,11 @@ def map_extracted_data_to_template(cv_data: Dict) -> Dict:
                     clean_lines.append(f"• {line}")
             mapped[f"DESCRIPTION_MISSION_{num}"] = "\n".join(clean_lines) if clean_lines else "Non renseigné"
         else:
-            mapped[f"DESCRIPTION_MISSION_{num}"] = "Non renseigné"
+            mapped[f"DESCRIPTION_MISSION_{num}"] = ""
         
         # ENV_TECH: Environnement technique (extrait des compétences techniques)
-        competences = cv_data.get("competences", [])
-        if competences:
-            # Prendre les 3-4 premières compétences techniques
-            tech_list = competences[:4]
-            mapped[f"ENV_TECH_{num}"] = ", ".join(tech_list)
-        else:
-            mapped[f"ENV_TECH_{num}"] = "Non renseigné"
+        environnement = exp.get("environnement_technique") or exp.get("environnement") or ""
+        mapped[f"ENV_TECH_{num}"] = ", ".join(environnement) if isinstance(environnement, list) else environnement
     
     # Remplir les champs vides (pour les 3 missions)
     for i in range(len(experiences) + 1, 4):
@@ -265,7 +262,8 @@ def bullets(lst, fallback="Non renseigné"):
             continue
         
         # Convertir en string et nettoyer
-        item_str = str(v).strip()
+        item_str = (" — ".join(str(value) for value in v.values() if value)
+                    if isinstance(v, dict) else str(v)).strip()
         
         # Ignorer les items vides
         if not item_str or len(item_str) < 1:
@@ -307,7 +305,7 @@ def format_experiences(exps: List[Dict], style: str = "professional") -> str:
     
     for e in sorted_exps:
         # Extraire les données avec des valeurs par défaut
-        dates = normalize_date_display(e.get("dates"))
+        dates = normalize_date_display(e.get("dates")) if e.get("dates") else ""
         entreprise = (e.get("entreprise") or "").strip()
         poste = (e.get("poste") or "").strip()
         lieu = (e.get("lieu") or "").strip()
@@ -348,6 +346,12 @@ def format_experiences(exps: List[Dict], style: str = "professional") -> str:
                     if line:
                         lines.append(f"  • {line}")
             
+            environnement = e.get("environnement_technique") or e.get("environnement")
+            if environnement:
+                if isinstance(environnement, list):
+                    environnement = ", ".join(str(item) for item in environnement)
+                lines.append("Environnement technique : " + str(environnement))
+
             # Ligne vide entre expériences
             lines.append("")
         else:
@@ -622,238 +626,84 @@ def replace_text_in_runs(paragraph, mapping):
 #   GENERATE DOCX FINAL
 # ---------------------------
 def generate_sopra_docx(cv_data, output_path):
-    """
-    Génère un document DOCX à partir de la template Sopra et des données du CV.
-    Adapte les données selon la structure de la template.
-    
-    Args:
-        cv_data: Dictionnaire contenant toutes les données du CV
-        output_path: Chemin de sortie du fichier DOCX
-    """
-    template_path = "templates/sopra_template.docx"
-
-    if not os.path.exists(template_path):
-        raise FileNotFoundError("Template DOCX introuvable")
-
+    """Remplit le modèle Word ; accepte un chemin ou un flux binaire."""
+    template_path = Path(__file__).resolve().parent.parent / "templates/sopra_template.docx"
     doc = Document(template_path)
-
-    # Extraire et valider les données
-    contact = cv_data.get("contact", {}) or {}
-    titre_profil = cv_data.get("titre_profil") or "Profil Collaborateur"
-    nom = contact.get("nom") or "Nom Prénom"
-    
-    # Détecter les sections disponibles dans la template
-    available_sections = detect_template_sections(doc)
-    print(f"✓ Sections détectées dans la template: {available_sections}")
-    
-    # Préparer les données formatées
+    contact = cv_data.get("contact") or {}
     comp_fonct, comp_tech = classify_competences(cv_data.get("competences", []))
-    
-    # Regrouper les compétences techniques par domaine
-    tech_by_domain = group_tech_by_domain(comp_tech)
-    comp_tech_formatted = format_tech_by_domain(tech_by_domain)
-    
-    projets = cv_data.get("projets", [])
-    projets_str = bullets(projets, "Aucun projet renseigné") if projets else ""
-    
-    disponibilite = cv_data.get("disponibilite")
-    dispo_str = disponibilite if disponibilite else "Non précisée"
-    
-    langues = cv_data.get("langues", [])
+    formations = format_formations(cv_data.get("formations", []))
     certifications = cv_data.get("certifications", [])
-    loisirs = cv_data.get("loisirs", [])
-    experiences = cv_data.get("experiences", [])
-    formations = cv_data.get("formations", [])
-    
-    # ===== MAPPING DES DONNÉES AUX CHAMPS TEMPLATE =====
-    # Adapter les données extraites aux champs exacts de la template
-    template_mapping = map_extracted_data_to_template(cv_data)
-
-    # Créer le mapping des placeholders avec toutes les variantes possibles
+    if certifications:
+        formations += "\nCertifications\n" + bullets(certifications)
     mapping = {
-        # Avec accolades
-        "{{NOM}}": nom,
-        "{{NOM_PRENOM}}": nom,  # Alias
-        "{{TITRE_PROFIL}}": titre_profil,
-        "{{CONTACT}}": format_contact(contact),
-        "{{EMAIL}}": contact.get("email") or "Non renseigné",
-        "{{TELEPHONE}}": contact.get("telephone") or "Non renseigné",
-        "{{ADRESSE}}": contact.get("adresse") or "Non renseignée",
-        "{{COMP_FONCT}}": bullets(comp_fonct, "Aucune compétence fonctionnelle") if comp_fonct else "Aucune compétence fonctionnelle",
-        "{{COMP_TECH}}": comp_tech_formatted,  # Utiliser le format groupé par domaine
-        "{{COMPETENCES}}": bullets(cv_data.get("competences", []), "Aucune compétence"),
-        "{{EXPERIENCES}}": format_experiences(experiences),
-        "{{FORMATIONS}}": format_formations(formations),
-        "{{FORMATIONS_CERTIFICATIONS}}": format_formations(formations),  # Alias pour la template
-        "{{LANGUES}}": bullets(langues, "Non renseigné") if langues else "Non renseigné",
-        "{{CERTIFICATIONS}}": bullets(certifications, "Aucune certification") if certifications else "Aucune certification",
-        "{{LOISIRS}}": bullets(loisirs, "Non renseigné") if loisirs else "Non renseigné",
-        "{{PROJETS}}": projets_str,
-        "{{DISPONIBILITE}}": dispo_str,
-        
-        # Sans accolades (fallback)
-        "NOM": nom,
-        "NOM_PRENOM": nom,  # Alias
-        "TITRE_PROFIL": titre_profil,
+        "TITRE_PROFIL": cv_data.get("titre_profil") or "Curriculum vitae",
+        "NOM": contact.get("nom") or "", "NOM_PRENOM": contact.get("nom") or "",
         "CONTACT": format_contact(contact),
-        "EMAIL": contact.get("email") or "Non renseigné",
-        "TELEPHONE": contact.get("telephone") or "Non renseigné",
-        "ADRESSE": contact.get("adresse") or "Non renseignée",
-        "COMP_FONCT": bullets(comp_fonct, "Aucune compétence fonctionnelle") if comp_fonct else "Aucune compétence fonctionnelle",
-        "COMP_TECH": comp_tech_formatted,  # Utiliser le format groupé par domaine
-        "COMPETENCES": bullets(cv_data.get("competences", []), "Aucune compétence"),
-        "EXPERIENCES": format_experiences(experiences),
-        "FORMATIONS": format_formations(formations),
-        "FORMATIONS_CERTIFICATIONS": format_formations(formations),  # Alias pour la template
-        "LANGUES": bullets(langues, "Non renseigné") if langues else "Non renseigné",
-        "CERTIFICATIONS": bullets(certifications, "Aucune certification") if certifications else "Aucune certification",
-        "LOISIRS": bullets(loisirs, "Non renseigné") if loisirs else "Non renseigné",
-        "PROJETS": projets_str,
-        "DISPONIBILITE": dispo_str,
+        "EMAIL": contact.get("email") or "", "TELEPHONE": contact.get("telephone") or "",
+        "ADRESSE": contact.get("adresse") or "",
+        "COMP_FONCT": bullets(comp_fonct), "COMP_TECH": format_tech_by_domain(group_tech_by_domain(comp_tech)),
+        "COMPETENCES": bullets(cv_data.get("competences", [])),
+        "EXPERIENCES": format_experiences(cv_data.get("experiences", [])),
+        "FORMATIONS": formations, "FORMATIONS_CERTIFICATIONS": formations,
+        "LANGUES": bullets(cv_data.get("langues", [])),
+        "CERTIFICATIONS": bullets(certifications), "LOISIRS": bullets(cv_data.get("loisirs", [])),
+        "PROJETS": bullets(cv_data.get("projets", [])),
+        "DISPONIBILITE": cv_data.get("disponibilite") or "",
+        **map_extracted_data_to_template(cv_data),
     }
-    
-    # Ajouter les champs mappés de la template pour les expériences
-    # Avec accolades
-    for key, value in template_mapping.items():
-        mapping[f"{{{{{key}}}}}"] = value
-    
-    # Sans accolades
-    for key, value in template_mapping.items():
-        mapping[key] = value
 
-    # -------------------------
-    # 1) REMPLACER DANS LES PARAGRAPHES
-    # -------------------------
-    # Traiter les descriptions multilignes en créant des paragraphes séparés
-    # On doit parcourir les paragraphes en reverse pour éviter les problèmes d'indexation
-    
-    from copy import deepcopy
-    from lxml import etree
-    
-    # Parcourir tous les paragraphes pour identifier ceux avec multiline
-    paragraphs_to_split = []
-    
-    for para_idx, para in enumerate(doc.paragraphs):
-        full_text = ''.join([run.text for run in para.runs])
-        
-        for key, val in mapping.items():
-            if key in full_text:
-                val_str = str(val) if val else ""
-                # Si la valeur contient des sauts de ligne, marquer pour traitement
-                if '\n' in val_str and val_str.strip():
-                    lines = [line.strip() for line in val_str.split('\n') if line.strip()]
-                    paragraphs_to_split.append({
-                        'para': para,
-                        'key': key,
-                        'lines': lines
-                    })
-                    break  # Traiter une seule clé multiline par paragraphe
-    
-    # Traiter les paragraphes multilignes en REVERSE
-    for split_info in reversed(paragraphs_to_split):
-        para = split_info['para']
-        key = split_info['key']
-        lines = split_info['lines']
-        
-        # Remplacer le placeholder par la première ligne
-        if lines:
-            replace_text_in_paragraph(para, {key: lines[0]})
-            
-            # Ajouter les lignes suivantes comme des nouveaux paragraphes
-            parent = para._element.getparent()
-            para_pos = list(parent).index(para._element)
-            
-            for line_num, line in enumerate(lines[1:], start=1):
-                # Créer un nouvel élément paragraphe en copiant l'existant
-                new_p_elem = deepcopy(para._element)
-                
-                # Vider le nouveau paragraphe de son contenu existant
-                for run in new_p_elem.findall('.//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}r'):
-                    new_p_elem.remove(run)
-                
-                # Insérer le nouvel élément après le paragraphe actuel
-                parent.insert(para_pos + line_num, new_p_elem)
-                
-                # Créer un objet Paragraph et ajouter le texte
-                new_p = etree.Element
-                # Utiliser la fonction de remplacement pour ajouter le texte au nouvel élément
-                for run_elem in new_p_elem.findall('.//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}r'):
-                    pass  # Il n'y a pas de run, on doit en créer
-                
-                # Créer un run pour ajouter le texte
-                from docx.oxml import OxmlElement
-                run_elem = OxmlElement('w:r')
-                text_elem = OxmlElement('w:t')
-                text_elem.text = line
-                run_elem.append(text_elem)
-                new_p_elem.append(run_elem)
-        
-        # Nettoyer le mapping
-        mapping[key] = ""
-    
-    # Traiter les placeholders restants
-    for paragraph in doc.paragraphs:
-        full_text = ''.join([run.text for run in paragraph.runs])
-        
-        # Filtrer le mapping pour ne garder que les clés qui sont dans ce paragraphe
-        para_mapping = {k: v for k, v in mapping.items() if k in full_text and v}
-        
-        if para_mapping:
-            try:
-                replace_text_in_runs(paragraph, para_mapping)
-            except:
-                try:
-                    replace_text_in_paragraph(paragraph, para_mapping)
-                except:
-                    pass
+    def paragraphs(container):
+        yield from container.paragraphs
+        for table in container.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    yield from paragraphs(cell)
 
-    # -------------------------
-    # 2) REMPLACER DANS LES TABLEAUX
-    # -------------------------
-    for table_idx, table in enumerate(doc.tables):
-        for row_idx, row in enumerate(table.rows):
-            for cell_idx, cell in enumerate(row.cells):
-                for paragraph in cell.paragraphs:
-                    try:
-                        replace_text_in_runs(paragraph, mapping)
-                    except Exception as e:
-                        print(f"⚠️ Erreur dans le tableau {table_idx}, ligne {row_idx}, cellule {cell_idx}: {e}")
-                        try:
-                            replace_text_in_paragraph(paragraph, mapping)
-                        except Exception as fallback_error:
-                            print(f"⚠️ Erreur fallback tableau: {fallback_error}")
+    contact_anchor = None
+    for container in [doc, *[part for section in doc.sections for part in (section.header, section.footer)]]:
+        for paragraph in list(paragraphs(container)):
+            original = paragraph.text
+            keys = re.findall(r"\{\{([A-Z0-9_]+)\}\}", original)
+            if not keys:
+                continue
+            if container is doc and "NOM_PRENOM" in keys and mapping.get("NOM_PRENOM"):
+                contact_anchor = paragraph
+            text = re.sub(r"\{\{([A-Z0-9_]+)\}\}", lambda m: str(mapping.get(m[1]) or ""), original)
+            if not any(mapping.get(key) for key in keys) or not text.strip(" -–—|\t\n"):
+                paragraph._element.getparent().remove(paragraph._element)
+                continue
+            text = text.strip(" -–—|\t\n")
+            # Le premier run conserve le style du modèle ; Word gère le retour à la ligne.
+            runs = paragraph.runs
+            if runs:
+                runs[0].text = text
+                for run in runs[1:]:
+                    run.text = ""
+            else:
+                paragraph.add_run(text)
 
-    # -------------------------
-    # 3) REMPLACER DANS LES EN-TÊTES ET PIEDS DE PAGE
-    # -------------------------
-    try:
-        for section in doc.sections:
-            # En-têtes
-            header = section.header
-            for paragraph in header.paragraphs:
-                try:
-                    replace_text_in_runs(paragraph, mapping)
-                except:
-                    try:
-                        replace_text_in_paragraph(paragraph, mapping)
-                    except:
-                        pass
-            
-            # Pieds de page
-            footer = section.footer
-            for paragraph in footer.paragraphs:
-                try:
-                    replace_text_in_runs(paragraph, mapping)
-                except:
-                    try:
-                        replace_text_in_paragraph(paragraph, mapping)
-                    except:
-                        pass
-    except Exception as e:
-        print(f"⚠️ Erreur lors du traitement des en-têtes/pieds: {e}")
-
+    if len(cv_data.get("experiences", [])) > 3:
+        doc.add_heading("Expériences complémentaires", level=1)
+        doc.add_paragraph(format_experiences(cv_data["experiences"][3:]))
+    if any(contact.get(key) for key in ("email", "telephone", "adresse")):
+        if contact_anchor is not None:
+            element = OxmlElement("w:p")
+            contact_anchor._p.addnext(element)
+            paragraph = Paragraph(element, contact_anchor._parent)
+            paragraph.paragraph_format.space_after = Pt(8)
+            paragraph.add_run(format_contact(contact)).font.size = Pt(10)
+        else:
+            doc.add_heading("Contact", level=1)
+            doc.add_paragraph(format_contact(contact))
+    for key, title in [("projets", "Projets"), ("loisirs", "Loisirs")]:
+        if cv_data.get(key):
+            doc.add_heading(title, level=1)
+            doc.add_paragraph(bullets(cv_data[key]))
+    if cv_data.get("disponibilite"):
+        doc.add_paragraph("Disponibilité : " + str(cv_data["disponibilite"]))
+    doc.core_properties.author = ""
+    doc.core_properties.last_modified_by = ""
     doc.save(output_path)
-    print(f"✓ Document DOCX généré avec succès: {output_path}")
     return output_path
 
 

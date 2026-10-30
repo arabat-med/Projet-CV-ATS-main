@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Chemin vers le modèle entraîné
-TRAINED_MODEL_PATH = Path(__file__).parent.parent / "models" / "cv_ner"
+TRAINED_MODEL_PATH = Path(os.environ.get("CV_NER_MODEL_PATH", str(Path(__file__).resolve().parent.parent / "models" / "cv_ner")))
 BASE_MODEL = "fr_core_news_md"
 
 # Titres de sections courants à ignorer pour les noms

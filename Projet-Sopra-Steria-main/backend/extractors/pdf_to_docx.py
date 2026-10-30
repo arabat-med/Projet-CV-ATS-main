@@ -46,15 +46,19 @@ def convert_pdf_to_docx(pdf_path: str, docx_path: str) -> bool:
                 
                 # Extraction du texte de la page
                 page = pdf_reader.pages[page_num]
-                text = page.extract_text()
+                text = page.extract_text() or ""
                 
                 # Ajout d'un saut de page si ce n'est pas la première page
                 if page_num > 0:
                     doc.add_page_break()
                 
                 # Ajout du texte dans le document Word
-                doc.add_paragraph(text)
+                for line in text.splitlines():
+                    doc.add_paragraph(line)
         
+        if not any(p.text.strip() for p in doc.paragraphs):
+            return False
+
         # Sauvegarde du document Word
         logger.info(f"Sauvegarde du document Word: {docx_path}")
         doc.save(docx_path)

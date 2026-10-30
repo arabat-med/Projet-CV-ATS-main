@@ -8,20 +8,20 @@ const HowItWorks = () => {
     {
       icon: Upload,
       title: "1. Téléchargez votre CV",
-      description: "Sélectionnez votre CV au format .docx depuis votre ordinateur. Notre système accepte tous les formats de CV, même les plus désorganisés.",
-      details: ["Formats acceptés : .docx", "Taille max : 10MB", "Toutes mises en forme acceptées"]
+      description: "Sélectionnez un PDF avec couche texte ou un DOCX. Le résultat dépend de la structure du document.",
+      details: ["Formats acceptés : .pdf texte, .docx", "Taille max : 10MB", "Tableaux DOCX pris en compte ; OCR absent"]
     },
     {
       icon: FileText,
       title: "2. Analyse automatique",
-      description: "Notre intelligence artificielle analyse et extrait automatiquement toutes les informations importantes de votre CV.",
+      description: "Le modèle spaCy et les règles extraient les rubriques reconnues. Vérifiez les données obtenues.",
       details: ["Extraction des données personnelles", "Identification des compétences", "Analyse de l'expérience professionnelle", "Reconnaissance de la formation"]
     },
     {
       icon: CheckCircle,
       title: "3. Standardisation",
       description: "Les informations sont organisées selon un format professionnel standardisé, prêt pour les RH.",
-      details: ["Format uniforme", "Structure professionnelle", "Mise en page optimisée", "Compatible ATS"]
+      details: ["Format uniforme", "Structure professionnelle", "Mise en page optimisée", "Export JSON, Word et PDF"]
     },
     {
       icon: Download,
@@ -35,17 +35,17 @@ const HowItWorks = () => {
     {
       icon: Zap,
       title: "Traitement rapide",
-      description: "Analysez votre CV en moins de 2 minutes grâce à notre IA avancée."
+      description: "Le traitement associe extraction de texte, NER et règles. Aucun temps de traitement n'est garanti."
     },
     {
       icon: Shield,
       title: "Sécurisé",
-      description: "Vos données sont traitées en toute sécurité et ne sont jamais stockées."
+      description: "Les fichiers source sont supprimés après traitement. Les résultats expirent après une durée configurable (1 h par défaut)."
     },
     {
       icon: Clock,
-      title: "Disponible 24/7",
-      description: "Utilisez notre service à tout moment, où que vous soyez."
+      title: "Exécution locale",
+      description: "L'application peut fonctionner sur votre machine avec son backend et ses modèles installés."
     }
   ]
 

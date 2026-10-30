@@ -23,9 +23,8 @@ const HeroSection = () => {
             </h1>
 
             <p className="hero-subtitle">
-              Extrayez automatiquement les informations de n'importe quel CV et
-              générez des documents professionnels standardisés en quelques
-              secondes.
+              Extrayez les informations de CV PDF texte ou DOCX et
+              générez des documents standardisés en JSON, Word et PDF.
             </p>
 
             <div className="hero-buttons">
@@ -41,25 +40,16 @@ const HeroSection = () => {
             </div>
 
             <div className="hero-stats">
-              <div>
-                <div className="stat-value orange">10K+</div>
-                <div className="stat-label">CV traités</div>
-              </div>
-              <div>
-                <div className="stat-value red">98%</div>
-                <div className="stat-label">Précision</div>
-              </div>
-              <div>
-                <div className="stat-value light-orange">2min</div>
-                <div className="stat-label">Temps moyen</div>
-              </div>
+              <div><div className="stat-value orange">PDF / DOCX</div><div className="stat-label">Documents source</div></div>
+              <div><div className="stat-value red">spaCy</div><div className="stat-label">NER et règles</div></div>
+              <div><div className="stat-value light-orange">JSON</div><div className="stat-label">Données structurées</div></div>
             </div>
           </div>
 
           {/* Image droite */}
           <div className="hero-image-container">
             <div className="hero-image-wrapper">
-              <img src={heroImage} alt="Visualisation de CV" />
+              <img src={heroImage} alt="Illustration de documents CV" />
               <div className="image-overlay"></div>
             </div>
           </div>

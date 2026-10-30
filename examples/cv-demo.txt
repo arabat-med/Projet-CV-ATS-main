@@ -1,0 +1,14 @@
+Camille EXEMPLE
+Développeur Python
+demo@example.invalid
+FORMATIONS
+2020 - 2022 | Université Exemple | Master Informatique
+EXPERIENCES
+2022 - 2024 | Entreprise Démonstration | Développeur Python
+- Création d'un outil de démonstration.
+COMPÉTENCES
+Python, React, Flask, Git
+LANGUES
+Français, Anglais
+PROJETS
+- Extraction de données dans un projet fictif.

@@ -59,8 +59,7 @@ def train_full_pipeline(
     try:
         nlp = spacy.load(base_model)
     except OSError:
-        os.system(f"python -m spacy download {base_model}")
-        nlp = spacy.load(base_model)
+        raise RuntimeError("Modèle de base absent : installez-le explicitement avec python -m spacy download fr_core_news_md")
     
     # =========================================================================
     # PHASE 1: Entraînement NER
@@ -185,7 +184,7 @@ def train_full_pipeline(
 def test_pipeline(nlp):
     """Test le pipeline complet."""
     test_texts = [
-        "Marie DUPONT\n06 12 34 56 78\nmarie@email.com",
+        "Marie DUPONT\n06 12 34 56 78\nmarie@example.invalid",
         "FORMATION\n2020-2023: Master Data Science - École Polytechnique",
         "EXPÉRIENCE PROFESSIONNELLE\nDéveloppeur Python chez Google (2019-2022)",
         "COMPÉTENCES TECHNIQUES: Python, Java, Docker, Kubernetes, AWS",

@@ -56,6 +56,8 @@ def train_ner(
     Returns:
         Le modèle entraîné
     """
+    spacy.util.fix_random_seed(0)
+
     # Validation des données
     print("🔍 Validation des données d'entraînement...")
     errors = validate_training_data(NER_TRAINING_DATA)
@@ -72,8 +74,7 @@ def train_ner(
         nlp = spacy.load(base_model)
     except OSError:
         print(f"Modèle '{base_model}' non trouvé. Téléchargement...")
-        os.system(f"python -m spacy download {base_model}")
-        nlp = spacy.load(base_model)
+        raise RuntimeError("Modèle de base absent : installez-le explicitement avec python -m spacy download fr_core_news_md")
     
     # Récupérer ou créer le composant NER
     if "ner" not in nlp.pipe_names:

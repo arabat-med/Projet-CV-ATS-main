@@ -1,11 +1,14 @@
 services:
   - type: web
-    name: cv-ats-api
+    name: cv-extraction-api
     env: python
-    buildCommand: pip install -r Projet-Sopra-Steria-main/backend/requirements.txt && python -m spacy download fr_core_news_sm
-    startCommand: cd Projet-Sopra-Steria-main/backend && gunicorn -w 4 -b 0.0.0.0:$PORT api:app
+    buildCommand: pip install -r Projet-Sopra-Steria-main/backend/requirements.txt
+    startCommand: cd Projet-Sopra-Steria-main/backend && gunicorn --workers 1 --timeout 120 -b 0.0.0.0:$PORT api:app
+    healthCheckPath: /api/health
     envVars:
-      - key: FLASK_ENV
-        value: production
+      - key: CV_ALLOWED_ORIGINS
+        sync: false
+      - key: CV_RETENTION_SECONDS
+        value: "3600"
       - key: PYTHONUNBUFFERED
         value: "1"

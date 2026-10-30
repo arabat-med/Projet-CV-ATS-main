@@ -10,10 +10,10 @@ const Example = () => {
     "informations_personnelles": {
       "nom": "Martin",
       "prenom": "Jean",
-      "email": "jean.martin@email.com",
-      "telephone": "+33 6 12 34 56 78",
-      "adresse": "123 Rue de la République, 75001 Paris",
-      "date_naissance": "15/03/1990",
+      "email": "demo@example.invalid",
+      "telephone": "",
+      "adresse": "Données fictives",
+      "date_naissance": "",
       "nationalite": "Française"
     },
     "experience_professionnelle": [
@@ -116,7 +116,7 @@ const Example = () => {
               Exemple de CV <span className="gradient-text">standardisé</span>
             </h1>
             <p className="hero-subtitle">
-              Découvrez à quoi ressemble un CV après traitement par notre IA
+              Exemple intégré avec des données fictives. Cette page illustre une présentation et ne constitue pas un résultat d'extraction.
             </p>
             
             <div className="view-toggle">
@@ -278,8 +278,8 @@ const Example = () => {
               <p>Format JSON facilement exploitable par vos systèmes RH et bases de données.</p>
             </div>
             <div className="info-card">
-              <h3>Compatible ATS</h3>
-              <p>Format optimisé pour les systèmes de suivi des candidatures (ATS).</p>
+              <h3>Exemple de présentation</h3>
+              <p>La compatibilité avec des logiciels ATS n'a pas été évaluée.</p>
             </div>
           </div>
         </div>

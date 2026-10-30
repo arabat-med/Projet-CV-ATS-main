@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.Python
+.venv*/
+venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+# Frontend
+node_modules/
+dist/
+dist-ssr/
+.npm/
+.yarn/
+# Local CV inputs and generated results
+**/backend/data/
+# Environment configuration and local overrides
+.env
+.env.*
+!.env.example
+*.local
+# Editor, hosting CLI, and temporary files
+.idea/
+.vscode/
+.vercel/
+.cache/
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.iml
+*.sw?
+*~
+.DS_Store
+Thumbs.db

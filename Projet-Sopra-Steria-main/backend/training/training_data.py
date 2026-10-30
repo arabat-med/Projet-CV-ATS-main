@@ -570,13 +570,13 @@ SECTION_CATEGORIES = [
 
 TEXTCAT_TRAINING_DATA = [
     # === HEADER (en-tête avec nom/contact) ===
-    ("Marie DUPONT\n06 12 34 56 78\nmarie.dupont@gmail.com\nParis, France", 
+    ("Marie DUPONT\n06 12 34 56 78\nmarie.dupont@example.invalid\nParis, France",
      {"cats": {"HEADER": 1.0, "PROFILE": 0.0, "EDUCATION": 0.0, "EXPERIENCE": 0.0, "SKILLS": 0.0, "LANGUAGES": 0.0, "PROJECTS": 0.0, "CERTIFICATIONS": 0.0, "INTERESTS": 0.0, "OTHER": 0.0}}),
-    ("Jean-Pierre MARTIN\nIngénieur DevOps\n+33 6 98 76 54 32\njp.martin@company.fr",
+    ("Jean-Pierre MARTIN\nIngénieur DevOps\n+33 6 98 76 54 32\njp.martin@example.invalid",
      {"cats": {"HEADER": 1.0, "PROFILE": 0.0, "EDUCATION": 0.0, "EXPERIENCE": 0.0, "SKILLS": 0.0, "LANGUAGES": 0.0, "PROJECTS": 0.0, "CERTIFICATIONS": 0.0, "INTERESTS": 0.0, "OTHER": 0.0}}),
-    ("Léo WEBER\nleo.weber@epita.fr\n+33 (6) 73 93 70\n78150 Le Chesnay",
+    ("Léo WEBER\nleo.weber@example.invalid\n+33 (6) 73 93 70\n78150 Le Chesnay",
      {"cats": {"HEADER": 1.0, "PROFILE": 0.0, "EDUCATION": 0.0, "EXPERIENCE": 0.0, "SKILLS": 0.0, "LANGUAGES": 0.0, "PROJECTS": 0.0, "CERTIFICATIONS": 0.0, "INTERESTS": 0.0, "OTHER": 0.0}}),
-    ("Sophie BERNARD - Développeuse Full Stack\n06 78 90 12 34\nsophie.bernard@gmail.com\nLyon",
+    ("Sophie BERNARD - Développeuse Full Stack\n06 78 90 12 34\nsophie.bernard@example.invalid\nLyon",
      {"cats": {"HEADER": 1.0, "PROFILE": 0.0, "EDUCATION": 0.0, "EXPERIENCE": 0.0, "SKILLS": 0.0, "LANGUAGES": 0.0, "PROJECTS": 0.0, "CERTIFICATIONS": 0.0, "INTERESTS": 0.0, "OTHER": 0.0}}),
     
     # === PROFILE (résumé/objectif professionnel) ===

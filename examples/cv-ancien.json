@@ -1,0 +1,12 @@
+{
+  "contact": {"nom": "Camille EXEMPLE", "email": "demo@example.invalid"},
+  "competences_techniques": ["Python", "Flask", "Git"],
+  "competences_fonctionnelles": ["Travail en équipe"],
+  "experiences": [
+    "Janvier 2022 - Décembre 2024 - Entreprise Démonstration - Développeur Python",
+    "Création d'un outil de démonstration.",
+    "Environnement technique : Python, Flask"
+  ],
+  "formations": ["2020 - 2022 : Master Informatique, Université Exemple"],
+  "langues": ["Français", "Anglais"]
+}

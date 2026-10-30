@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd Projet-Sopra-Steria-main/frontend && npm install && npm run build",
+  "buildCommand": "npm run build --prefix Projet-Sopra-Steria-main/frontend",
   "outputDirectory": "Projet-Sopra-Steria-main/frontend/dist",
   "framework": "vite",
   "rewrites": [
@@ -8,5 +8,6 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "installCommand": "npm ci --ignore-scripts --prefix Projet-Sopra-Steria-main/frontend"
 }

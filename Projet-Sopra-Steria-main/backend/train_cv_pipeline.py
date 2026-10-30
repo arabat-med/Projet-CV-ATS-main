@@ -55,8 +55,7 @@ class CVPipelineTrainer:
             nlp = spacy.load(self.base_model)
         except OSError:
             print(f"Modèle '{self.base_model}' non trouvé. Téléchargement...")
-            os.system(f"python -m spacy download {self.base_model}")
-            nlp = spacy.load(self.base_model)
+            raise RuntimeError("Modèle de base absent : installez explicitement fr_core_news_md avant l’entraînement")
         return nlp
     
     def train_ner(self, n_iter: int = 30, dropout: float = 0.35, output_dir: str = None) -> Tuple[spacy.Language, Dict]:

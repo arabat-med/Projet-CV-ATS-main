@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
+import { apiUrl, validateUpload } from '../../utils/api';
 import {
   Upload,
   FileText,
@@ -9,209 +10,15 @@ import {
   FileDown,
   Eye
 } from 'lucide-react';
-import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Radar } from 'react-chartjs-2';
 import './Start.css';
 
-ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
-
-// ---- Helpers ----
-const computeExtractionScore = (result) => {
+// Présence des rubriques uniquement : aucune mesure de précision NLP.
+const computeCompleteness = (result) => {
   if (!result) return 0;
-  let score = 0;
-
-  const weights = {
-    contact: 25,
-    formations: 15,
-    experiences: 20,
-    competences: 20,
-    langues: 10,
-    projets: 5,
-    certifications: 3,
-    disponibilite: 2
-  };
-
-  if (result.contact?.nom && result.contact?.email) score += weights.contact;
-  if (result.formations?.length) score += weights.formations;
-  if (result.experiences?.length) score += weights.experiences;
-  if (result.competences?.length) score += weights.competences;
-  if (result.langues?.length) score += weights.langues;
-  if (result.projets?.length) score += weights.projets;
-  if (result.certifications?.length) score += weights.certifications;
-  if (result.disponibilite) score += weights.disponibilite;
-
-  // --- Penalties ---
-  let penalties = 0;
-
-  // Nom mal extrait (contient un métier ou trop de mots)
-  if (result.contact?.nom && /développeur|ingénieur|chef|manager/i.test(result.contact.nom)) {
-    penalties += 10;
-  }
-
-  // Dates incohérentes
-  result.experiences?.forEach((exp) => {
-    const years = exp.dates?.match(/(19|20)\d{2}/g);
-    if (years && years.length === 2) {
-      if (parseInt(years[1]) < parseInt(years[0])) penalties += 8;
-    }
-  });
-
-  // Exp sans dates
-  const emptyDatesCount = result.experiences?.filter(e => !e.dates)?.length || 0;
-  penalties += emptyDatesCount * 5;
-
-  // Doublons entreprises
-  const entreprises = new Set();
-  result.experiences?.forEach(e => {
-    if (entreprises.has(e.entreprise)) penalties += 5;
-    entreprises.add(e.entreprise);
-  });
-
-  score -= penalties;
-
-  return Math.max(0, Math.min(100, score));
-};
-
-const computeProfessionalCvScore = (result) => {
-  if (!result) return 0;
-  let score = 0;
-
-  // 1) Richesse compétences
-  const comp = result.competences || [];
-  const hasBackend = comp.some(c => /python|java|spring|node|django|c\+\+/i.test(c));
-  const hasFrontend = comp.some(c => /react|angular|vue|html|css|javascript/i.test(c));
-  const hasCloud = comp.some(c => /aws|azure|gcp|cloud|docker|kubernetes|ci\/cd/i.test(c));
-  const hasSoft = comp.some(c => /communication|leadership|gestion/i.test(c));
-
-  score += (hasBackend + hasFrontend + hasCloud + hasSoft) * 5; // max 20
-
-  // 2) Expérience totale
-  const years = estimateExperienceLevel(result).years;
-  if (years >= 7) score += 20;
-  else if (years >= 4) score += 15;
-  else if (years >= 2) score += 10;
-  else if (years >= 1) score += 5;
-
-  // 3) Études
-  const formations = result.formations || [];
-  if (formations.some(f => /master|bac\+5|ingénieur/i.test(f.etablissement))) score += 15;
-  else if (formations.some(f => /licence|bac\+3/i.test(f.etablissement))) score += 10;
-  else if (formations.length) score += 5;
-
-  // 4) Projets / réalisations
-  if (result.projets?.length >= 3) score += 10;
-  else if (result.projets?.length === 2) score += 7;
-  else if (result.projets?.length === 1) score += 4;
-
-  // 5) Langues
-  if (result.langues?.length >= 2) score += 10;
-  else if (result.langues?.length === 1) score += 5;
-
-  // 6) Cohérence globale
-  let coherence = 15;
-
-  // incohérence simple : dates inversées
-  result.experiences?.forEach((exp) => {
-    const years = exp.dates?.match(/(19|20)\d{2}/g);
-    if (years && years.length === 2 && parseInt(years[1]) < parseInt(years[0])) {
-      coherence -= 5;
-    }
-  });
-
-  score += Math.max(0, coherence);
-
-  // 7) Structure claire
-  const structureSections =
-    (result.contact ? 1 : 0) +
-    (result.formations?.length ? 1 : 0) +
-    (result.experiences?.length ? 1 : 0) +
-    (result.competences?.length ? 1 : 0);
-
-  score += structureSections * 3; // max 12
-
-  return Math.min(100, score);
-};
-
-
-const estimateExperienceLevel = (result) => {
-  if (!result?.experiences?.length) return { label: 'Non déterminé', years: 0 };
-
-  let minYear = 9999;
-  let maxYear = 0;
-
-  const extractYear = (str) => {
-    if (!str) return null;
-    const range = str.match(/(19|20)\d{2}.*(19|20)\d{2}/);
-    if (range) {
-      const years = str.match(/(19|20)\d{2}/g);
-      if (years && years.length >= 2) {
-        return { start: parseInt(years[0], 10), end: parseInt(years[1], 10) };
-      }
-    }
-    const single = str.match(/(19|20)\d{2}/);
-    if (single) {
-      const y = parseInt(single[0], 10);
-      return { start: y, end: y };
-    }
-    return null;
-  };
-
-  result.experiences.forEach((exp) => {
-    const parsed = extractYear(exp.dates);
-    if (parsed) {
-      minYear = Math.min(minYear, parsed.start);
-      maxYear = Math.max(maxYear, parsed.end);
-    }
-  });
-
-  if (minYear === 9999 || maxYear === 0) return { label: 'Non déterminé', years: 0 };
-  const years = Math.max(0, maxYear - minYear + 1);
-
-  let label = 'Junior';
-  if (years >= 5) label = 'Senior';
-  else if (years >= 2) label = 'Intermédiaire';
-
-  return { label, years };
-};
-
-const buildRadarData = (result) => {
-  const competences = (result?.competences || []).slice(0, 7); // max 7 axes
-  if (!competences.length) {
-    return {
-      labels: ['Compétences'],
-      datasets: [
-        {
-          label: 'Compétences',
-          data: [1]
-        }
-      ]
-    };
-  }
-
-  // on met toutes les valeurs à 3 pour un rendu équilibré
-  const values = competences.map(() => 3);
-
-  return {
-    labels: competences,
-    datasets: [
-      {
-        label: 'Compétences clés',
-        data: values,
-        backgroundColor: 'rgba(255, 88, 120, 0.2)',
-        borderColor: 'rgba(214, 46, 92, 0.9)',
-        borderWidth: 2,
-        pointRadius: 3
-      }
-    ]
-  };
+  const fields = [result.contact?.nom, result.contact?.email,
+    result.formations?.length, result.experiences?.length,
+    result.competences?.length, result.langues?.length];
+  return Math.round(fields.filter(Boolean).length / fields.length * 100);
 };
 
 const downloadJson = (result) => {
@@ -226,11 +33,6 @@ const downloadJson = (result) => {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-};
-
-const exportPdf = () => {
-  // version simple : impression de la page (l’utilisateur peut choisir "Enregistrer en PDF")
-  window.print();
 };
 
 const Start = () => {
@@ -252,7 +54,7 @@ const Start = () => {
     formData.append("file", modifiedDocx);
   
     try {
-      const response = await fetch("http://localhost:5000/api/cv/convert", {
+      const response = await fetch(apiUrl("/api/cv/convert"), {
         method: "POST",
         body: formData,
       });
@@ -297,12 +99,13 @@ const Start = () => {
   // --- Sélection du fichier ---
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
-    if (file && (file.name.endsWith('.docx') || file.name.endsWith('.pdf'))) {
+    const validationError = validateUpload(file, ['.docx', '.pdf']);
+    if (!validationError) {
       setSelectedFile(file);
       setError(null);
       setResult(null);
     } else {
-      alert('Veuillez sélectionner un fichier .docx ou .pdf');
+      setError(validationError);
     }
   };
 
@@ -317,7 +120,7 @@ const Start = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/cv/analyze', {
+      const response = await fetch(apiUrl('/api/cv/analyze'), {
         method: 'POST',
         body: formData
       });
@@ -333,10 +136,7 @@ const Start = () => {
     }
   };
 
-  const extractionScore = computeExtractionScore(result);
-  const professionalScore = computeProfessionalCvScore(result);
-  const xpInfo = estimateExperienceLevel(result);
-  const radarData = buildRadarData(result);
+  const extractionScore = computeCompleteness(result);
 
   return (
     <div className="start-page">
@@ -379,7 +179,7 @@ const Start = () => {
                   <>
                     <h3 className="upload-title">Glissez-déposez votre CV ici</h3>
                     <p className="upload-description">ou cliquez pour sélectionner un fichier</p>
-                    <p className="upload-format">Formats acceptés : .docx, .pdf</p>
+                    <p className="upload-format">Formats acceptés : .docx, .pdf texte · 10 Mio maximum</p>
                   </>
                 )}
               </div>
@@ -407,6 +207,11 @@ const Start = () => {
             </div>
           )}
 
+          <p className="mt-4 text-sm text-gray-500">
+            Traitement sur le serveur configuré. Sources supprimées après traitement ; résultats temporaires
+            (expiration configurable, 1 h par défaut). Vérifiez les informations extraites avant utilisation.
+          </p>
+
           {/* Résultat affiché */}
           {result && (
             <div className="result-section text-left mt-10">
@@ -416,7 +221,7 @@ const Start = () => {
 
                 {/* Score extraction */}
                 <div className="score-block">
-                  <span className="score-label">Fiabilité extraction</span>
+                  <span className="score-label">Complétude des rubriques</span>
                   <div className="score-value">
                     <BarChart3 size={18} />
                     <span>{extractionScore}%</span>
@@ -428,28 +233,11 @@ const Start = () => {
                       />
                   </div>
                   
-                  {/* Score Pro */}
-                  <div className="score-block">
-                  <span className="score-label">Score CV Pro</span>
-                  <div className="score-value">
-                    <BarChart3 size={18} />
-                    <span>{professionalScore}%</span>
-                  </div>
-                  <div className="score-bar">
-                    <div
-                      className="score-bar-fill"
-                      style={{ width: `${professionalScore}%` }}
-                    />
-                  </div>
+                  <p className="text-sm">Présence des rubriques détectées, sans mesure de précision ni évaluation du candidat.</p>
                 </div>
-                </div>
-
-                {/* XP */}
                 <div className="xp-block">
-                  <span className="xp-label">Niveau d’expérience</span>
-                  <span className="xp-pill">
-                    {xpInfo.label} {xpInfo.years > 0 && `(${xpInfo.years} ans estimés)`}
-                  </span>
+                  <span className="xp-label">Expériences détectées</span>
+                  <span className="xp-pill">{result.experiences?.length || 0}</span>
                 </div>
 
                 <div className="export-buttons">
@@ -467,7 +255,7 @@ const Start = () => {
                         alert("Aucun PDF généré par le backend.");
                         return;
                       }
-                      window.open(`http://localhost:5000/api/cv/pdf/${result.pdf_filename}`, "_blank");
+                      window.open(apiUrl(`/api/cv/pdf/${encodeURIComponent(result.pdf_filename)}`), "_blank", "noopener,noreferrer");
                     }}
                   >
                     <FileDown size={16} />
@@ -485,8 +273,8 @@ const Start = () => {
                       const baseName = result.json_filename.replace(".json", "");
 
                       window.open(
-                        `http://localhost:5000/api/cv/docx/${baseName}`,
-                        "_blank"
+                        apiUrl(`/api/cv/docx/${encodeURIComponent(baseName)}`),
+                        "_blank", "noopener,noreferrer"
                       );
                     }}
                   >
@@ -499,7 +287,12 @@ const Start = () => {
                     accept=".docx"
                     style={{ display: "none" }}
                     id="upload-modified-docx"
-                    onChange={(e) => setModifiedDocx(e.target.files[0])}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      const validationError = validateUpload(file, ['.docx']);
+                      setModifiedDocx(validationError ? null : file);
+                      setError(validationError);
+                    }}
                   />
 
                   <label htmlFor="upload-modified-docx" className="export-btn">
@@ -579,31 +372,6 @@ const Start = () => {
                         <span key={i} className="skill-tag">{c}</span>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {/* RADAR COMPETENCES */}
-                {result.competences?.length > 0 && (
-                  <div className="result-card radar-card">
-                    <h3 className="result-title">
-                      <BarChart3 size={18} /> Radar des compétences
-                    </h3>
-                    <Radar
-                      data={radarData}
-                      options={{
-                        responsive: true,
-                        scales: {
-                          r: {
-                            suggestedMin: 0,
-                            suggestedMax: 5,
-                            ticks: { stepSize: 1 }
-                          }
-                        },
-                        plugins: {
-                          legend: { display: false }
-                        }
-                      }}
-                    />
                   </div>
                 )}
 

@@ -1,4 +1,5 @@
 import re
+import unicodedata
 import sys
 import os
 from typing import List, Optional, Tuple
@@ -131,9 +132,6 @@ def extract_date_spans(text: str):
                 if dp:
                     parsed = dp.date().isoformat()
 
-                    #  Filtrer les dates du jour (erreur fréquente de dateparser)
-                    if parsed.endswith("-11-12") or parsed.endswith("-11-11"):
-                        continue
             except Exception:
                 parsed = None
 
@@ -457,7 +455,7 @@ def extract_poste_from_context(context: str) -> Optional[str]:
     for pattern in POSTE_PATTERNS:
         m = re.search(pattern, context, re.IGNORECASE)
         if m:
-            return m.group(1).strip().title()
+            return m.group(1).strip()
     return None
 
 
@@ -524,10 +522,20 @@ def extract_name_from_header(texte: str) -> Optional[str]:
 # Parser de sections
 # ---------------------
 def extract_section_text(texte: str, section_names: List[str]) -> Optional[str]:
-    """Extrait le texte d'une section spécifique"""
-    pattern = r'(?:' + '|'.join(section_names) + r')\s*[:\-\n]+(.+?)(?=\n\s*(?:Formations?|Expériences?|Compétences?|Langues?|Projets?|Certifications?|Loisirs?)\s*[:\-\n]|$)'
-    match = re.search(pattern, texte, re.IGNORECASE | re.DOTALL)
-    return match.group(1).strip() if match else None
+    """Délimite les titres de section entiers, accentués ou non."""
+    headings = re.compile(
+        r"^[ \t]*(formations?|[ée]tudes?|[ée]ducation|cursus|exp[ée]riences?(?: professionnelles?)?|"
+        r"comp[ée]tences?(?: techniques| fonctionnelles)?|langues?|projets?|r[ée]alisations?|"
+        r"certifications?|loisirs?|centres d['’]int[ée]r[êe]ts?)[ \t]*:?[ \t]*$", re.I | re.M)
+    fold = lambda value: unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+    wanted = {fold(name) for name in section_names}
+    matches = list(headings.finditer(texte))
+    for index, match in enumerate(matches):
+        title = fold(match.group(1))
+        if title in wanted or any(title.startswith(name + " ") for name in wanted):
+            end = matches[index + 1].start() if index + 1 < len(matches) else len(texte)
+            return texte[match.end():end].strip()
+    return None
 
 
 def parse_formation_section(texte: str) -> List[dict]:
@@ -666,9 +674,9 @@ def classifier_formations_experiences(texte: str, entites: dict, dates: List[str
                 })
     
     if not experiences:
-        for entreprise in entites.get("entreprises", []):
+        for entreprise in entites.get("entreprises", entites.get("organisations", [])):
             entreprise_clean = nettoyer_nom_organisation(entreprise)
-            if entreprise_clean and is_valid_company(entreprise_clean):
+            if entreprise_clean and is_valid_company(entreprise_clean) and not is_formation(entreprise_clean):
                 date = find_closest_date_by_char(entreprise_clean, texte, date_spans)
                 poste = extract_poste_from_context(texte)
                 experiences.append({
@@ -682,8 +690,8 @@ def classifier_formations_experiences(texte: str, entites: dict, dates: List[str
     def dedupe(lst, key):
         seen = {}
         for item in lst:
-            k = (item.get(key) or "").lower()
-            if k and k not in seen:
+            k = ((item.get(key) or "").lower(), item.get("dates"), item.get("poste"), item.get("diplome"))
+            if k[0] and k not in seen:
                 seen[k] = item
         return list(seen.values())
     
@@ -729,8 +737,14 @@ def build_structured_json(emails, telephones, adresses, dates, texte_cv):
     dispo = parse_disponibilite(texte_cv)
     
     # Fusion et nettoyage
-    competences = list(set(comp_kw + comp_sec + entites.get("competences", [])))
-    langues = list(set(lang_kw + lang_sec + entites.get("langues", [])))
+    def unique_labels(values):
+        labels = {}
+        for value in values:
+            labels.setdefault(value.strip().casefold(), value.strip())
+        return sorted(labels.values(), key=str.casefold)
+
+    competences = unique_labels(comp_kw + comp_sec + entites.get("competences", []))
+    langues = unique_labels(lang_kw + lang_sec + entites.get("langues", []))
     
     # JSON final
     json_final = {
@@ -789,7 +803,7 @@ if __name__ == "__main__":
     """
     
     result = build_structured_json(
-        emails=["jean.dupont@email.com"],
+        emails=["jean.dupont@example.invalid"],
         telephones=["06 12 34 56 78"],
         adresses=["Paris"],
         dates=["2020 – Présent", "2015 – 2017"],

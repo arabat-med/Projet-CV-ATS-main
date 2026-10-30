@@ -2,11 +2,11 @@
    INDEX.CSS — GLOBAL STYLESHEET (CLEAN VERSION)
    ============================================================ */
 
-   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
    @import "tailwindcss";
+   @custom-variant dark (&:where(.dark, .dark *));
    
    * {
-     font-family: "Raleway", sans-serif;
+     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
    }
    
     /* ===================== NAVBAR GLOBAL =======.dark button.text-xl:empty::before { content: "☀️"; font-size: 1.5rem; } 
@@ -234,7 +234,7 @@
       line-height: 1.75rem;
     }
   
-    .focus\\:outline-none:focus {
+    .focus\:outline-none:focus {
       outline: 2px solid transparent;
       outline-offset: 2px;
     }
@@ -303,7 +303,7 @@
     }
   
     /* Focus pour accessibilité */
-    .focus\\:outline-none:focus {
+    .focus\:outline-none:focus {
       outline: 2px solid #FF5614;
       outline-offset: 2px;
     }
@@ -323,7 +323,7 @@
     }
   
     /* ===================== MOBILE HAMBURGER BUTTON ===================== */
-    .md\\:hidden button {
+    .md\:hidden button {
       background: none;
       border: none;
       cursor: pointer;
@@ -332,11 +332,11 @@
       transition: all 0.3s ease;
     }
   
-    .md\\:hidden button:hover {
+    .md\:hidden button:hover {
       background-color: rgba(0, 0, 0, 0.1);
     }
   
-    .dark .md\\:hidden button:hover {
+    .dark .md\:hidden button:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
     /* ============================================================
@@ -510,4 +510,15 @@
        max-width: 400px;
      }
    }
-   
+
+/* Contraste des éléments de l'accueil dans le thème sombre. */
+.dark .gradient-text {
+  background-image: linear-gradient(135deg, #ffd0a0, #ff938b);
+}
+.dark .btn-secondary {
+  color: #f9fafb;
+  border-color: #9ca3af;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.dark .hero-stats .stat-label { color: #d6d3d1; }
+.dark .hero-stats .stat-value.red { color: #ffaaa5; }

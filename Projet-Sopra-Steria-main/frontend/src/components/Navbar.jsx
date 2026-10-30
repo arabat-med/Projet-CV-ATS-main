@@ -52,6 +52,8 @@ const Navbar = () => {
         <div className="navbar-toggle">
           <button
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={isOpen}
             className="text-gray-700 dark:text-gray-200 focus:outline-none"
           >
             {isOpen ? <HiX size={30} /> : <HiMenu size={30} />}

@@ -486,7 +486,7 @@ if __name__ == "__main__":
     # Test rapide
     test_text = """
     Léo WEBER
-    leo.weber@epita.fr
+    leo.weber@example.invalid
     
     Formation
     EPITA : Dernière année du cycle ingénieur (Kremlin-Bicêtre)

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
+import { apiUrl, validateUpload } from '../../utils/api';
 import {
   Upload,
   FileText,
@@ -38,13 +39,14 @@ const Normalize = () => {
   // --- Sélection du fichier ---
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
-    if (file && (file.name.endsWith('.json') || file.name.endsWith('.docx'))) {
+    const validationError = validateUpload(file, ['.json', '.docx']);
+    if (!validationError) {
       setSelectedFile(file);
       setError(null);
       setResult(null);
       setMetadata(null);
     } else {
-      alert('Veuillez sélectionner un fichier .json ou .docx');
+      setError(validationError);
     }
   };
 
@@ -59,7 +61,7 @@ const Normalize = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/cv/normalize', {
+      const response = await fetch(apiUrl('/api/cv/normalize'), {
         method: 'POST',
         body: formData
       });
@@ -97,7 +99,7 @@ const Normalize = () => {
     if (!result) return;
     
     try {
-      const response = await fetch('http://localhost:5000/api/cv/normalize/docx', {
+      const response = await fetch(apiUrl('/api/cv/normalize/docx'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -129,7 +131,7 @@ const Normalize = () => {
     if (!result) return;
     
     try {
-      const response = await fetch('http://localhost:5000/api/cv/normalize/pdf', {
+      const response = await fetch(apiUrl('/api/cv/normalize/pdf'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -197,7 +199,7 @@ const Normalize = () => {
                   <>
                     <h3 className="upload-title">Glissez-déposez votre ancien CV ici</h3>
                     <p className="upload-description">ou cliquez pour sélectionner un fichier</p>
-                    <p className="upload-format">Formats acceptés : .json, .docx</p>
+                    <p className="upload-format">Formats acceptés : .json, .docx · 10 Mio maximum</p>
                   </>
                 )}
               </div>
@@ -226,6 +228,8 @@ const Normalize = () => {
             </div>
           )}
 
+          <p className="mt-4 text-sm text-gray-500">Sources traitées en mémoire pour la normalisation.
+            Vérifiez le contenu avant téléchargement.</p>
           {/* Résultat affiché */}
           {result && (
             <div className="result-section text-left mt-10">
