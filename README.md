@@ -1,4 +1,7 @@
 # CV Extraction & Document Generation
+## Présentation en ligne
+
+[Voir le site déployé](https://cv-mxdighnzg-mohammed-s-projects-0a8a37fb.vercel.app)
 
 An academic full-stack application that turns text-based PDF and Word CVs into structured JSON, then generates Word and PDF documents. It combines a React interface, a Flask API, French spaCy named entity recognition (NER), and parsing rules.
 
