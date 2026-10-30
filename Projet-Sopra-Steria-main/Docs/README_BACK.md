@@ -1,248 +1,34 @@
-```md
-#  Backend – Analyse et Génération Automatique de CV
+# Backend
 
-##  Description
-
-Ce backend a été développé dans le cadre d’un projet étudiant en partenariat avec **Sopra Steria**.  
-Son objectif est d’automatiser le traitement de CV non structurés (PDF ou DOCX) afin de :
-
-- simplifier l’analyse des informations d’un candidat,
-- standardiser la présentation de ces données,
-- générer automatiquement des documents professionnels (DOCX & PDF),
-- tout en respectant les contraintes de **confidentialité** (traitement 100 % local).
-
-L’application analyse un CV grâce à un pipeline avancé mêlant expressions régulières, NLP (spaCy) et classification heuristique.
-
----
-
-##  Fonctionnalités
-
-### ✔ Fonctionnalités principales (déjà implémentées)
-
--  Import de CV **PDF** ou **DOCX**
--  Conversion **PDF → DOCX**
--  Extraction d’informations :
-  - Nom complet
-  - Email
-  - Numéro de téléphone
-  - Adresse postale
-  - Dates clés
-  - Expériences professionnelles
-  - Formations
-  - Compétences
-  - Certifications
-  - Langues
-  - Projets
--  Analyse NLP via **spaCy** (NER + classification texte)
--  Génération automatique :
-    - d’un fichier **DOCX standardisé**
-    - d’un fichier **PDF branding Sopra Steria**
--  API RESTful complète consommée par le frontend
--  Gestion automatique des fichiers temporaires
--  Traitement 100% local (aucune donnée envoyée à un service externe)
-
----
-
-###  Évolutions futures
-
-- [ ] OCR pour les PDF scannés
-- [ ] Modèle ML pour classifier les sections du CV
-- [ ] Templates DOCX personnalisables par collaborateur
-- [ ] Historique des analyses
-- [ ] Swagger/OpenAPI pour documenter l’API
-- [ ] Multilingue (anglais → français)
-
----
-
-##  Technologies
------------------------------------------------------------------------------------
-| Domaine                    | Outils                                              |
-|----------------------------|-----------------------------------------------------|
-| **Framework**              | Flask, Flask-CORS                                   |
-| **Extraction**             | Regex, spaCy (fr_core_news_md)                      |
-| **Manipulation documents** | python-docx, docxtpl, PyPDF2                        |
-| **Conversion**             | docx2pdf (Windows), win32com automation             |
-| **Génération PDF**         | ReportLab                                           |
-| **Analyse date & texte**   | dateparser, rapidfuzz                               |
-------------------------------------------------------------------------------------
----
-
-##  Architecture du backend
-
-```
-
-  backend/
-  │
-  ├── api.py                       # Entrée principale API Flask
-  ├── requirements.txt
-  │
-  ├── data/
-  │   ├── input/                   # Fichiers uploadés
-  │   └── output/                  # JSON, DOCX, PDF générés
-  │
-  ├── extractors/
-  │   ├── extracteur.py            # Regex : email, téléphone, dates, adresse
-  │   ├── pdf_to_docx.py           # Conversion PDF → DOCX
-  │   ├── spacy_extractor.py       # NER + NLP
-  │   └── section_classifier.py    # Classification formation/expérience
-  │
-  ├── generators/
-  │   ├── generate_sopra_docx.py   # Génération du DOCX structuré
-  │   ├── pdf_sopra_profile.py     # Génération du PDF Sopra Steria
-  │   └── docx_to_pdf.py           # Conversion DOCX → PDF
-  │
-  └── analyser_cv.py               # Script offline pour tests locaux
-
-##  Installation
-
-### 1. Cloner le projet
+L'API Flask est définie dans [`backend/api.py`](../backend/api.py). Lancer depuis la racine Git :
 
 ```bash
-git clone https://github.com/DorianLn/Projet-Sopra-Steria.git
-cd Projet-Sopra-Steria/backend
-````
-
-### 2. Créer l’environnement Python
-
-```bash
-python -m venv venv
-venv\Scripts\activate      # Windows
+python Projet-Sopra-Steria-main/backend/api.py
 ```
 
-### 3. Installer les dépendances
+Le parcours d'analyse lit le PDF texte avec PyPDF2 ou le DOCX avec python-docx, tableaux compris. `analyser_cv.py` extrait les contacts et dates ; `section_classifier.py` combine parsing de sections et entités de `spacy_extractor.py`. Le modèle actif est `models/cv_ner`, configurable avec `CV_NER_MODEL_PATH`.
 
-```bash
-pip install -r requirements.txt
-```
+Les sources sont supprimées après traitement. Chaque analyse possède un dossier sous `CV_DATA_DIR`, avec un identifiant aléatoire et une expiration enregistrée dans `job.json`. Le JSON et le PDF restent disponibles pendant `CV_RETENTION_SECONDS`, une heure par défaut. Les requêtes déclenchent la suppression des dossiers expirés. Le nettoyage différé n'est pas une garantie d'effacement immédiat à l'expiration.
 
-### 4. Installer spaCy + modèle français
+Le téléchargement Word génère le document en mémoire depuis le JSON. Les exports PDF directs passent par ReportLab, avec pagination. La route de conversion d'un Word réédité appelle LibreOffice ou Pandoc ; elle renvoie 503 en l'absence de conversion possible, sans produire silencieusement un document textuel différent.
+
+Les modules `enhanced_extractor.py` et `heuristic_rules.py` sont des expérimentations conservées, non appelées par l'API. Les modèles NER et TextCat de `models/cv_pipeline` ne sont pas chargés automatiquement.
+
+Le script CLI `analyser_cv.py` constitue un parcours distinct : il traite les DOCX placés dans `backend/data/input` et écrit uniquement les extractions regex dans `backend/data/output`. Il ne remplace pas l'analyse structurée de l'API et conserve ses entrées locales.
+
+## Entraînement
+
+Les modèles fournis ont des métadonnées spaCy 3.8. Le corpus est dans `training/training_data.py`. Le rapport sauvegardé décrit l'entraînement, sans précision mesurée sur un jeu indépendant.
+
+Pour réentraîner le modèle utilisé par l'API, depuis `backend/`, dans un environnement dédié :
 
 ```bash
 python -m spacy download fr_core_news_md
+python training/train_ner.py --output models/cv_ner --iterations 30
 ```
 
----
+Cette commande **remplace le modèle cible** : conserver une copie ou choisir un autre `--output` puis définir `CV_NER_MODEL_PATH`. Redémarrer l'API pour charger le nouveau modèle. Aucun réentraînement n'a été effectué lors de la remise en état.
 
-## ▶ Lancer le serveur
+`train_cv_pipeline.py` entraîne séparément NER/TextCat sous `models/cv_pipeline`. Il ne met pas à jour le modèle actif par défaut. Les distributions de modèles restent volumineuses ; leur consolidation nécessite une décision sur les expérimentations à conserver.
 
-```bash
-python api.py
-```
-
-L’API démarre sur :
-==> **[http://localhost:5000](http://localhost:5000)**
-
----
-
-##  Endpoints API
-
-###  1. Analyse d’un CV
-
-**POST** `/api/cv/analyze`
-
-**Body** : FormData
-
-```
-file: <PDF ou DOCX>
-```
-
-**Réponse :**
-
-```json
-    {
-      "contact": {...},
-      "formations": [...],
-      "experiences": [...],
-      "competences": [...],
-      "json_filename": "CV_Victor_Hugo.json",
-      "pdf_filename": "CV_Victor_Hugo.pdf"
-    }
-```
-
----
-
-###  2. Télécharger le DOCX généré
-
-**GET** `/api/cv/docx/<filename>`
-
----
-
-###  3. Convertir un DOCX importé en PDF
-
-**POST** `/api/cv/convert`
-
----
-
-###  4. Télécharger un PDF généré
-
-**GET** `/api/cv/pdf/<filename>`
-
----
-
-##  Pipeline de traitement
-
-```
-    Upload CV
-      ↓
-    Conversion PDF → DOCX (si besoin)
-      ↓
-    Lecture texte (python-docx)
-      ↓
-    Extraction regex
-      ↓
-    Analyse NLP (spaCy)
-      ↓
-    Classification heuristique (section_classifier)
-      ↓
-    Construction du JSON structuré
-      ↓
-    Génération DOCX + Génération PDF
-      ↓
-    Réponse API
-```
-
----
-
-##  Roadmap
-
-### Phase 1 : Extraction (complétée)
-
-* ✔ Conversion PDF → DOCX
-* ✔ Extraction regex
-* ✔ Première version NLP
-
-### Phase 2 : Génération (complétée)
-
-* ✔ DOCX structuré
-* ✔ PDF branding Sopra Steria
-
-### Phase 3 : API & Frontend (en cours)
-
-* ✔ API analyse CV
-* ✔ Export DOCX/PDF
-* ✔ Connexion frontend
-
-### Phase 4 : Améliorations
-
-*  Optimisation extraction
-*  OCR pour PDF scannés
-*  Templates multiples
-
----
-
-## 👥 Contributeurs
-
-* Safae Berrichi
-* Dorian Lo Negro
-* Thomas Gaugeais
-* Julien Thepaut
-* Nehade El Mokhtari
-* Clément
-
----
-
-## 📜 Licence
-
-Projet réalisé dans le cadre d’un partenariat pédagogique avec **Sopra Steria**.Tous droits réservés.
-
-```
+Voir le [README principal](../../README.md) pour installation, configuration, routes et limites.

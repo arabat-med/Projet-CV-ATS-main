@@ -1,124 +1,33 @@
-# Frontend - CV Extract Pro - Sopra Steria
+# Frontend
 
-Ce dépôt contient la partie **frontend** de l’application, développée avec **React**, **Vite** et **TailwindCSS**.  
+Interface React 19, React Router 7, Vite 7 et Tailwind CSS 4 via le plugin Vite. Le verrou npm fixe les versions installées. Node 20.19+ sur la branche 20 ou Node 22.12+ est nécessaire.
 
-L’application propose une interface intuitive permettant d’extraire automatiquement les informations d’un CV et de générer des documents standardisés professionnels.
+Depuis la racine Git :
 
-## Stack Technique
-
-        ⚛️ **React 19** — Composants modernes & réactifs
-
-        ⚡ **Vite** — Serveur de développement ultra-rapide + build optimisé (Rollup)
-
-        🎨 **TailwindCSS** — Design responsive & entièrement personnalisable
-
-        🛣 **React Router DOM** — Navigation multi-pages fluide
-
-        🌗 **Dark / Light Mode** — Gestion du thème avec persistance locale (localStorage)
-
-## Installation & Lancement
-
-### 1. Cloner le projet
 ```bash
-        git clone https://github.com/DorianLn/Projet-Sopra-Steria.git
+npm ci --ignore-scripts --prefix Projet-Sopra-Steria-main/frontend
+npm run dev --prefix Projet-Sopra-Steria-main/frontend
+```
 
-        cd Projet-Sopra-Steria/frontend
+## Pages
 
-### 2. Installer les dépendances
-        npm install
+| Route | Comportement |
+|---|---|
+| `/` | Présentation et navigation |
+| `/start` | Téléversement PDF texte/DOCX, résultats, JSON et exports documentaires |
+| `/normalize` | Entrée JSON/DOCX, aperçu du schéma v2 et exports |
+| `/example` | Présentation intégrée à données fictives, indépendante de l'API |
+| `/howitworks` | Explication du traitement et de ses limites |
 
-### 3. Lancer le serveur de développement
-        npm run dev
+`src/utils/api.js` centralise l'URL API et la validation de taille/extension. `VITE_API_URL` est vide par défaut. Le proxy Vite relaie `/api` vers `127.0.0.1:5000`. Pour un frontend hébergé séparément, définir l'URL HTTPS du backend au build et son origine dans `CV_ALLOWED_ORIGINS` côté backend.
 
- ***************************************************************
-| ==> L’application sera disponible sur http://localhost:5173   |
- ***************************************************************
-### 4. Build pour la production
-        npm run build
+Le thème est mémorisé dans `localStorage`. La complétude affichée est la proportion de six éléments présents : nom, email, formations, expériences, compétences et langues. Elle ne mesure pas la précision de l'extraction ou la qualité d'un candidat. Aucun niveau de compétence n'est déduit graphiquement.
 
-### 5. Prévisualiser le build
-        npm run preview
+```bash
+npm run lint --prefix Projet-Sopra-Steria-main/frontend
+npm run build --prefix Projet-Sopra-Steria-main/frontend
+```
 
-#### Structure du projet
-        frontend/
-        ├── images/
-        │   ├── preview1.png
-        │   ├── preview2.png
-        │   ├── preview3.png
-        │   └── preview4.png
-        ├── public/                 # Fichiers statiques
-        ├── src/
-        │   ├── assets/             # Images, logos, icônes...
-        │   ├── components/         # Composants réutilisables
-        │   │   ├── Navbar.jsx
-        │   │   └── HeroSection.jsx
-        │   ├── pages/              # Pages principales
-        │   │   └── Home.jsx
-        │   ├── App.jsx             # Définition des routes
-        │   ├── main.jsx            # Point d’entrée React
-        │   └── index.css           # Styles globaux & thème
-        ├── index.html              # Page principale
-        ├── package.json
-        ├── tailwind.config.js      # Config Tailwind
-        ├── postcss.config.cjs
-        ├── vite.config.js          # Config Vite
-        └── README.md
+Les commandes npm ci-dessus constituent le parcours d'installation et de validation ; aucun script de déploiement supplémentaire n'est nécessaire.
 
-##### Style & Thème
-        Police principale : Raleway
-        Police secondaire : Manrope (pour les titres et chiffres)
-        Mode : Clair 🌞 / Sombre 🌙 activable depuis la Navbar
-        Couleur primaire : rgb(221, 83, 52) (#DD5334)
-        Dégradés utilisés : linear-gradient(90deg, #880015, #FF5614)
-        Le design suit la charte visuelle Sopra Steria, combinant minimalisme et professionnalisme.
-
-###### Fonctionnalités principales
-
-        🎨 Interface responsive : optimisée pour desktop & mobile
-        🌗 Dark/Light Mode : persistant avec localStorage
-        ⚡ Performance : chargement rapide via Vite
-        🧭 Navigation fluide : gérée avec React Router
-
-####### Scripts utiles
- -------------------------------------------------------------------------------
-|        Commandes              |                Description                    |
- -------------------------------------------------------------------------------
-|       npm run dev	        |       Lancer le serveur en mode développement |
-|       npm run build	        |       Construire le projet pour la production |
-|       npm run preview	        |       Tester le build localement              |
---------------------------------------------------------------------------------
-
-######## Contributeurs
-
-👩‍💻 Safae
-👨‍💻 Nehade
-👨‍💻 Clément
-👨‍💻 Julien 
-👨‍💻 Dorian 
-👨‍💻 Thomas 
-----------------------------------------------------------------------------------------------------------------
-# À propos du projet
-
-CV Extract Pro est développé dans le cadre du projet Sopra Steria, visant à automatiser la gestion et la normalisation des CV pour les processus de recrutement.
-Cette partie frontend met l’accent sur l’expérience utilisateur, la rapidité et la clarté visuelle.
-----------------------------------------------------------------------------------------------------------------
-
-# Améliorations futures
-
-🔹 Connexion au backend Python :
-Intégration d’une API REST pour communiquer avec le moteur d’extraction et de génération de CV (FastAPI ou Django).
-🔹 Optimisation du Dark Mode :
-Amélioration des contrastes et de la lisibilité en mode sombre.
-
-# Aperçu de l’application
-
-        Voici un aperçu de l’interface CV Extract Pro :
-
-        Navbar : navigation fluide, dark/light mode activable
-        Hero Section : titre, sous-titre, boutons d’action et statistiques
-        Design responsive : optimisé pour desktop & mobile
-
-![Preview 1](./images/preview1.png)
-![Preview 2](./images/preview2.png)
-![Preview 3](./images/preview3.png)
-![Preview 4](./images/preview4.png)
+[Captures et vérification navigateur](../../docs/DEMONSTRATIONS.md).
