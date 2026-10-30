@@ -7,4 +7,4 @@ Le workflow actif est [`.github/workflows/ci.yml`](../../.github/workflows/ci.ym
 
 Le modèle NER est fourni dans le dépôt ; le workflow ne télécharge pas de modèle de base. Le test système LibreOffice est ignoré si le binaire est absent. Les autres tests utilisent des répertoires temporaires et des données fictives.
 
-La configuration a été vérifiée localement ; aucun résultat GitHub Actions distant n'est revendiqué. Les vérifications navigateur nécessitent des serveurs locaux et Chrome, selon le [protocole](../../docs/DEMONSTRATIONS.md).
+Les deux jobs backend et frontend ont réussi sur GitHub Actions pour le commit `1f202b0` le 30 octobre 2026 : [exécution vérifiée](https://github.com/arabat-med/Projet-CV-ATS-main/actions/runs/41063019814). Les vérifications navigateur nécessitent des serveurs locaux et Chrome, selon le [protocole](../../docs/DEMONSTRATIONS.md). La réussite de la CI ne prouve pas un déploiement de production.

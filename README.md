@@ -241,7 +241,7 @@ npm run build --prefix Projet-Sopra-Steria-main/frontend
 
 Local verification recorded **44 passing backend tests**, successful lint and build, and real browser workflows using fictional data. Tests cover section separation, Word tables, repeated normalization, document generation, exports, upload limits, and result expiry. Real LibreOffice conversion was tested; that test is skipped when LibreOffice is absent.
 
-The [validation record](docs/VALIDATION.md) separates tested commands from unverified environments. The [browser protocol](docs/DEMONSTRATIONS.md) uses the real API without mocked responses. A [GitHub Actions workflow](.github/workflows/ci.yml) exists; successful remote CI execution is not claimed.
+The [validation record](docs/VALIDATION.md) separates tested commands from unverified environments. The [browser protocol](docs/DEMONSTRATIONS.md) uses the real API without mocked responses. The [GitHub Actions workflow](.github/workflows/ci.yml) passed both backend and frontend jobs for commit `1f202b0`: [verified run](https://github.com/arabat-med/Projet-CV-ATS-main/actions/runs/41063019814). CI success does not validate a production deployment or NLP accuracy.
 
 ## Data handling
 

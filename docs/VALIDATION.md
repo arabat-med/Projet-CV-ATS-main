@@ -31,13 +31,17 @@ The test invocation added `-B` and `-p no:cacheprovider` to avoid Python bytecod
 
 The browser script checks theme switching; it does not test persistence across a browser restart. Persistence is implemented in the frontend's local-storage hook. The local Markdown preview is a rendering check. Repository publication is recorded by Git commits; remote CI and hosting status are separate checks.
 
+## GitHub Actions verification
+
+Both backend and frontend jobs passed on **30 October 2026** for published commit `1f202b0`: [verified CI run](https://github.com/arabat-med/Projet-CV-ATS-main/actions/runs/41063019814). The backend job installed development dependencies and ran pytest; the frontend job installed from the lockfile, linted, and built the application. This remote result is separate from the local test count and does not verify hosting or NLP quality.
+
 ## Not verified
 
 - Windows/PowerShell and macOS setup or execution.
 - Node 20 and other Node versions allowed by the package manifest.
 - The separately installed `fr_core_news_md` fallback path.
 - Pandoc with an external PDF engine.
-- Successful remote GitHub Actions execution or Vercel/Render deployment.
+- Vercel/Render deployment.
 - OCR, multilingual extraction quality, NLP precision/recall/F1, ATS compatibility, throughput, latency, or load limits.
 - A complete accessibility audit or production security assessment.
 
